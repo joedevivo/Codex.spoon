@@ -261,8 +261,23 @@ Codex.workspaces.jumpToApp("browser")       -- jump to app category (toggles bac
 Codex.workspaces.toggleJump()               -- flip between last two targets
 Codex.workspaces.currentSpace()             -- get current workspace name
 Codex.workspaces.isUnmanaged()              -- true if current workspace is floating
+Codex.workspaces.names()                    -- ordered list of configured workspace names
+Codex.workspaces.windowsInfo("work")        -- structured window info for a workspace (id, appName, bundleID, title, focused)
 Codex.workspaces.dump()                     -- debug print all state
 ```
+
+### Switcher (Workspace HUD)
+
+`switcher.lua` renders a hold-to-peek overview: one panel per workspace, with
+each window's app icon and title, current workspace highlighted. Bind it as
+a hold key — shown on press, dismissed on release:
+
+```lua
+Codex.switcher.bind({ "cmd", "alt", "ctrl" }, "tab")
+```
+
+Or call `Codex.switcher.show()` / `Codex.switcher.hide()` directly to wire up
+your own trigger (e.g. a toggle instead of hold-to-peek).
 
 ### Workspace-Aware Dispatch
 

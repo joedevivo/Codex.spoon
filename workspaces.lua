@@ -32,6 +32,7 @@ local screen_changed = false  -- set by screen watcher, forces retile on next sw
 local ws_pending = {}         -- name -> { {id=number, win=window_ref}, ... }
 local screen_watcher = nil    -- hs.screen.watcher instance
 local ws_layout = {}    -- name -> "scrolling" | "unmanaged"
+local ws_order = {}     -- ordered list of workspace names, as configured
 local ws_filter = nil    -- separate window filter for workspace lifecycle hooks
 local toggle_back = false -- when true, pressing the same switch/jump key toggles back
 local focus_follows_off = {} -- appName -> true (apps that DON'T trigger workspace switch on focus)
@@ -359,6 +360,7 @@ function Workspaces.setup(opts)
     for _, name in ipairs(names) do
         ws_windows[name] = {}
     end
+    ws_order = names
     current = names[1]
 
     -- Block focus-triggered workspace switches during setup
@@ -866,6 +868,12 @@ function Workspaces.currentSpace()
     return current
 end
 
+---get the ordered list of configured workspace names
+---@return string[]
+function Workspaces.names()
+    return ws_order
+end
+
 ---check if a workspace uses unmanaged (floating) layout
 ---@param name string|nil workspace name, defaults to current
 ---@return boolean
@@ -894,6 +902,35 @@ function Workspaces.listWindows(name)
             result[#result + 1] = appName .. ": " .. win:title() .. " [" .. id .. "]"
         end
     end
+    return result
+end
+
+---structured window info for a workspace, for UI consumers (e.g. the switcher HUD)
+---@param name string|nil workspace name, defaults to current
+---@return { id: number, appName: string, bundleID: string|nil, title: string, focused: boolean }[]
+function Workspaces.windowsInfo(name)
+    name = name or current
+    local focused_id = ws_focused[name]
+    if name == current then
+        local live = Window.focusedWindow()
+        if live and live:id() then focused_id = live:id() end
+    end
+
+    local result = {}
+    for id in pairs(ws_windows[name] or {}) do
+        local win = Window.get(id)
+        if win then
+            local app = win:application()
+            result[#result + 1] = {
+                id = id,
+                appName = app and app:title() or "?",
+                bundleID = app and app:bundleID() or nil,
+                title = win:title() or "",
+                focused = id == focused_id,
+            }
+        end
+    end
+    table.sort(result, function(a, b) return a.id < b.id end)
     return result
 end
 

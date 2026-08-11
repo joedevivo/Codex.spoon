@@ -78,6 +78,7 @@ Codex.tiling = dofile(hs.spoons.resourcePath("tiling.lua"))
 Codex.transport = dofile(hs.spoons.resourcePath("transport.lua"))
 Codex.workspaces = dofile(hs.spoons.resourcePath("workspaces.lua"))
 Codex.scratch = dofile(hs.spoons.resourcePath("scratch.lua"))
+Codex.switcher = dofile(hs.spoons.resourcePath("switcher.lua"))
 
 -- Initialize modules
 Codex.windows.init(Codex)
@@ -90,6 +91,7 @@ Codex.tiling.init(Codex)
 Codex.transport.init(Codex)
 Codex.workspaces.init(Codex)
 Codex.scratch.init(Codex)
+Codex.switcher.init(Codex)
 
 -- Apply config
 for k, v in pairs(Codex.config) do
