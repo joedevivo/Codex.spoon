@@ -905,6 +905,49 @@ function Workspaces.listWindows(name)
     return result
 end
 
+---order a workspace's window ids to match on-screen tiling order (left to
+---right, top to bottom within a column). Falls back to window id for
+---anything not present in the tiling state (floating windows, or windows
+---not yet captured in a parked snapshot).
+---@param name string workspace name
+---@return number[] ordered window ids
+local function orderedIds(name)
+    local ids = ws_windows[name] or {}
+    local ordered = {}
+    local seen = {}
+
+    local wl = nil
+    if name == current then
+        local screen = Screen.mainScreen()
+        local space = screen and Spaces.activeSpaces()[screen:getUUID()]
+        wl = space and codex.state.windowList(space)
+    else
+        local snap = ws_snapshots[name]
+        wl = snap and snap.window_list
+    end
+
+    if wl then
+        for _, col in ipairs(wl) do
+            for _, win in ipairs(col) do
+                local id = win and win.id and win:id()
+                if id and ids[id] and not seen[id] then
+                    ordered[#ordered + 1] = id
+                    seen[id] = true
+                end
+            end
+        end
+    end
+
+    local leftover = {}
+    for id in pairs(ids) do
+        if not seen[id] then leftover[#leftover + 1] = id end
+    end
+    table.sort(leftover)
+    for _, id in ipairs(leftover) do ordered[#ordered + 1] = id end
+
+    return ordered
+end
+
 ---structured window info for a workspace, for UI consumers (e.g. the switcher HUD)
 ---@param name string|nil workspace name, defaults to current
 ---@return { id: number, appName: string, bundleID: string|nil, title: string, focused: boolean }[]
@@ -917,7 +960,7 @@ function Workspaces.windowsInfo(name)
     end
 
     local result = {}
-    for id in pairs(ws_windows[name] or {}) do
+    for _, id in ipairs(orderedIds(name)) do
         local win = Window.get(id)
         if win then
             local app = win:application()
@@ -930,7 +973,6 @@ function Workspaces.windowsInfo(name)
             }
         end
     end
-    table.sort(result, function(a, b) return a.id < b.id end)
     return result
 end
 
