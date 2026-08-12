@@ -63,11 +63,12 @@ end
 local function snapshotPanels()
     panels = {}
     local current = codex.workspaces.currentSpace()
+    local info_by_ws = codex.workspaces.windowsInfoAll()
     for col, name in ipairs(codex.workspaces.names()) do
         panels[#panels + 1] = {
             name = name,
             unmanaged = codex.workspaces.isUnmanaged(name),
-            wins = codex.workspaces.windowsInfo(name),
+            wins = info_by_ws[name] or {},
         }
         if name == current then
             sel_col = col

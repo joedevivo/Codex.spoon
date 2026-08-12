@@ -948,11 +948,27 @@ local function orderedIds(name)
     return ordered
 end
 
+---build an id -> window lookup from a single enumeration. Window.get(id)
+---does a fresh system-wide window enumeration on every call (~60ms each);
+---reusing one enumeration across many ids is far cheaper.
+---@return table<number, userdata>
+local function allWindowsById()
+    local by_id = {}
+    for _, win in ipairs(Window.allWindows()) do
+        local id = win:id()
+        if id then by_id[id] = win end
+    end
+    return by_id
+end
+
 ---structured window info for a workspace, for UI consumers (e.g. the switcher HUD)
 ---@param name string|nil workspace name, defaults to current
+---@param win_by_id table<number, userdata>|nil pre-fetched id->window lookup
+---  (see allWindowsById/windowsInfoAll) to avoid a fresh enumeration per call
 ---@return { id: number, appName: string, bundleID: string|nil, title: string, focused: boolean }[]
-function Workspaces.windowsInfo(name)
+function Workspaces.windowsInfo(name, win_by_id)
     name = name or current
+    win_by_id = win_by_id or allWindowsById()
     local focused_id = ws_focused[name]
     if name == current then
         local live = Window.focusedWindow()
@@ -961,7 +977,7 @@ function Workspaces.windowsInfo(name)
 
     local result = {}
     for _, id in ipairs(orderedIds(name)) do
-        local win = Window.get(id)
+        local win = win_by_id[id]
         if win then
             local app = win:application()
             result[#result + 1] = {
@@ -972,6 +988,18 @@ function Workspaces.windowsInfo(name)
                 focused = id == focused_id,
             }
         end
+    end
+    return result
+end
+
+---structured window info for every configured workspace, sharing a single
+---window enumeration across all of them instead of one per workspace
+---@return table<string, table[]> workspace name -> window info list (see windowsInfo)
+function Workspaces.windowsInfoAll()
+    local win_by_id = allWindowsById()
+    local result = {}
+    for _, name in ipairs(ws_order) do
+        result[name] = Workspaces.windowsInfo(name, win_by_id)
     end
     return result
 end

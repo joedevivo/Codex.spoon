@@ -263,6 +263,7 @@ Codex.workspaces.currentSpace()             -- get current workspace name
 Codex.workspaces.isUnmanaged()              -- true if current workspace is floating
 Codex.workspaces.names()                    -- ordered list of configured workspace names
 Codex.workspaces.windowsInfo("work")        -- structured window info for a workspace (id, appName, bundleID, title, focused)
+Codex.workspaces.windowsInfoAll()           -- windowsInfo() for every workspace, one window enumeration shared across all
 Codex.workspaces.dump()                     -- debug print all state
 ```
 
