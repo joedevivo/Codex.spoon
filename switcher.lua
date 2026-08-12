@@ -2,9 +2,9 @@
 --
 -- Renders one panel per workspace (app icon + title per window, current
 -- workspace highlighted) as an hs.canvas overlay. Bound as a hold-to-peek
--- hotkey: shown on press. While held, arrow keys move a selection cursor
--- (left/right between workspaces, up/down between windows); releasing the
--- hotkey focuses whatever is selected. Escape cancels without acting.
+-- hotkey: shown on press. While held, arrow keys (or hjkl) move a selection
+-- cursor (left/right between workspaces, up/down between windows); releasing
+-- the hotkey focuses whatever is selected. Escape cancels without acting.
 
 local Canvas <const> = hs.canvas
 local Screen <const> = hs.screen
@@ -238,7 +238,7 @@ local function buildElements()
 
     elements[#elements + 1] = {
         type = "text",
-        text = "\u{2190}\u{2192} workspace   \u{2191}\u{2193} window   release to focus   esc to cancel",
+        text = "\u{2190}\u{2192}/hl workspace   \u{2191}\u{2193}/jk window   release to focus   esc to cancel",
         textSize = 11,
         textAlignment = "center",
         textColor = { white = 0.6, alpha = 1 },
@@ -262,6 +262,10 @@ local function startArrowTap()
         [Keycodes.map.right] = { 1, 0 },
         [Keycodes.map.up] = { 0, -1 },
         [Keycodes.map.down] = { 0, 1 },
+        [Keycodes.map.h] = { -1, 0 },
+        [Keycodes.map.l] = { 1, 0 },
+        [Keycodes.map.k] = { 0, -1 },
+        [Keycodes.map.j] = { 0, 1 },
     }
     arrow_tap = Eventtap.new({ Eventtap.event.types.keyDown }, function(e)
         local code = e:getKeyCode()
